@@ -54,7 +54,7 @@ TA-Classroom/
 
 ```bash
 # 1. ไปที่โปรเจกต์
-cd C:\Store\Script-Programming\TA-Classroom
+cd TA-Classroom
 
 # 2. (แนะนำ) สร้าง virtual environment
 python -m venv .venv
