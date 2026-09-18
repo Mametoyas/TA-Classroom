@@ -5,7 +5,7 @@
 - ดูรายชื่อคอร์ส / งาน / การส่งงานของนักศึกษา
 - Web UI (Flask) สำหรับดูและตรวจการส่งงาน
 - CLI scripts สำหรับดึงข้อมูลอย่างรวดเร็ว
-- ส่งคะแนนให้ระบบ `getscore1.com` ผ่าน Google `id_token` (OAuth)
+- ส่งคะแนนให้ระบบ `getscore1.com` (ผ่าน bookmarklet TA Autofill บนหน้าเว็บ)
 
 ## โครงสร้างโปรเจกต์
 
@@ -36,8 +36,8 @@ TA-Classroom/
 
 | ไฟล์ | ใช้ทำอะไร |
 |------|-----------|
-| `src/ta_auth.py` | `get_credentials()` โหลด/สร้าง `token.json`, `get_classroom()`, `get_id_token()` (path อ้างอิง root เสมอ ไม่ขึ้นกับ CWD) |
-| `app.py` | Routes: `/` (หน้าแรก), `/courses`, `/coursework`, `/submissions`, `/submit_score` (POST ส่งคะแนน) |
+| `src/ta_auth.py` | `get_credentials()` โหลด/สร้าง `token.json`, `get_classroom()` (path อ้างอิง root เสมอ ไม่ขึ้นกับ CWD) |
+| `app.py` | Routes: `/` (หน้าแรก), `/courses`, `/coursework`, `/submissions`, `/bookmarklet` (ติดตั้ง TA Autofill) |
 | `submissions` route | ดึงรายชื่อ student + submission ของงานนั้น, จับคู่ให้ scorer ผูกกับ `exercise_id` + `last4` |
 
 ---
@@ -155,7 +155,9 @@ python app.py
 | Course Work | `/coursework?course_id=...` | รายการงานของคอร์ส |
 | Submissions | `/submissions?course_id=...&coursework_id=...` | การส่งงาน + ส่งคะแนน |
 
-**ส่งคะแนน:** หน้า submissions → กรอก `last4` (4 ตัวหลังของรหัสนศ. จากชื่อไฟล์) + score → POST ไปยัง `https://getscore1.com/ta_score.php` พร้อม `id_token`
+**ส่งคะแนน:** หน้า submissions → กดปุ่ม **"ให้คะแนน"** แล้วเลือกได้ 2 อย่าง: **เปิดคลาสรูม** (เปิดงานนั้นเพื่อตรวจ/ให้คะแนนด้วยตัวเองบน Google Classroom) หรือ **ให้คะแนนเว็บ** (เปิด `getscore1.com/ta_score.php` พร้อมข้อมูลใน URL) — แล้วกด bookmarklet **TA Autofill** (ดู `/bookmarklet`) เพื่อกรอกและส่งคะแนนอัตโนมัติ คะแนนกรอกเองได้ (มี `max` ตามแลป), `last4` ดึงจากชื่อไฟล์อัตโนมัติ (ไฟล์ที่ไม่มีรหัสนักศึกษา ขึ้นต้น 65-68 จะมีป้ายเตือนบอกชื่อไฟล์)
+
+> ⚠️ getscore1.com ยอมรับเฉพาะ session + `id_token` ของปุ่ม Google Sign-In บนเว็บของมันเอง ดังนั้นต้องล็อกอิน Google บนเว็บก่อน (ครั้งแรก) และการส่งคะแนนต้องทำผ่านหน้าเว็บนั้น (bookmarklet) — backend ส่งตรงไม่สามารถทำได้ (`auth: false`)
 
 ### CLI scripts
 
@@ -183,8 +185,17 @@ python src/check_token.py
 |----------|---------|-----------|
 | `SECRET_KEY` | `ta-classroom-secret` | Flask secret key |
 | `CLASS_ID` | `2569CP412703` | classid สำหรับส่งคะแนน getscore1 |
+| `WEB_GRADE_COURSES` | `855107375121,855274641019,855273686370` | `course_id` (คั่นด้วย comma) ที่ให้ปุ่ม "ให้คะแนนเว็บ"/"ให้คะแนนทุกคน" — วิชาอื่นดูได้แค่งาน (ยังเปิดคลาสรูมได้) |
 
-Windows (PowerShell):
+ค่าจริงควรใส่ในไฟล์ **`.env`** (root ของโปรเจกต์ — ถูก `.gitignore` แล้ว, แอปจะ `load_dotenv` ตอนสตาร์ท) โดยคัดลอกจาก `.env.example` แล้วใส่ค่าของตัวเอง ตัวอย่าง:
+
+```dotenv
+SECRET_KEY=random-ยาว-ๆ-ของคุณ
+CLASS_ID=2569CP412703
+WEB_GRADE_COURSES=855107375121,855274641019,855273686370
+```
+
+ถ้าต้องการ override ตอนรัน (env shell ชนะ `.env`):
 ```powershell
 $env:SECRET_KEY = "something-secret"
 $env:CLASS_ID = "2569CP412703"
@@ -200,8 +211,8 @@ python app.py
 | `Error 403: access_denied` ที่หน้า authorize | ไม่ได้ enable Classroom API หรืออยู่หน้า consent ไม่ถูกต้อง — กลับไป step 2 |
 | `Error 403: public client` / `redirect_uri_mismatch` | ใช้ OAuth client ผิดประเภท — ต้องเป็น **Desktop app** ไม่ใช่ Web |
 | `'Client is unauthorized'` /  blocked | อีเมลไม่ถูกเพิ่มเป็น **Test user** — กลับไป step 3 |
-| ไม่มี `id_token` ใน token | `openid` + `userinfo.email` scope หายไป หรือ token เก่า — ลบ `token.json` แล้วรันใหม่ |
 | เจอ token.json แต่ใช้ไม่ได้ | ลบ `token.json` แล้วรัน `python src/check_courses.py` อีกครั้ง |
+| กด "ให้คะแนนเว็บ" แล้วเว็บขึ้น "เซสชันหมดอายุ" | ต้องล็อกอิน Google บนหน้า getscore1.com ก่อน (ครั้งแรก/เมื่อเซสชันหมด) และใช้ bookmarklet **TA Autofill** กรอก/ส่งแทนการ POST ผ่าน backend |
 | โดน rate limit เรียก API ถี่ไป | Google Classroom API มี quota 1,000 req/นาที/โปรเจกต์ — กันไว้ตรวจสอบแล้ว |
 
 ### วิธีลบ token แล้ว authorize ใหม่
