@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% set breadcrumb = "เกิดข้อผิดพลาด" %}
+{% block content %}
+<div class="tab-bar">
+  <span class="tab-item active">ผิดพลาด</span>
+  <div class="tab-spacer"></div>
+  <div class="tab-utils">
+    <button class="icon-btn" title="Refresh" onclick="location.reload()">
+      <span class="material-icons-outlined">refresh</span>
+    </button>
+  </div>
+</div>
+
+<div class="content-area">
+  <div class="promo-banner" style="background:#FCE8E6">
+    <span class="material-icons-outlined promo-icon" style="font-size:40px;color:#C5221F">error</span>
+    <div class="promo-body">
+      <h3>เรียก Google Classroom API ไม่สำเร็จ</h3>
+      <p>{{ message | safe }}</p>
+    </div>
+    <button class="icon-btn dismiss" onclick="location.reload()">
+      <span class="material-icons-outlined">refresh</span>
+    </button>
+  </div>
+
+  <div style="text-align:center;padding:24px">
+    <button class="btn-primary" onclick="location.reload()">
+      <span class="material-icons-outlined" style="font-size:18px">refresh</span>
+      ลองใหม่ (รีเฟรช)
+    </button>
+  </div>
+</div>
+{% endblock %}

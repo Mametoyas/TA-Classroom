@@ -2,7 +2,7 @@
 {% set breadcrumb = "Bookmarklet" %}
 {% block content %}
 <div class="tab-bar">
-  <span class="tab-item active">ติดตั้ง Bookmarklet</span>
+  <span class="tab-item active">ติดตั้งอัตโนมัติ</span>
 </div>
 
 <div class="content-area">
@@ -10,7 +10,34 @@
     <span class="material-icons-outlined promo-icon" style="font-size:40px">bookmark_add</span>
     <div class="promo-body">
       <h3>ติดตั้ง Bookmarklet ครั้งเดียว</h3>
-      <p>ลาก <strong>TA Autofill</strong> ไปวางที่ Bookmark Bar แล้วกดทุกครั้งที่เปิดหน้า getscore1.com</p>
+      <p>Bookmarklet = ลิงก์ใน Bookmark Bar ที่กดแล้วรันโค้ดได้ — อันนี้ใช้กรอกและส่งคะแนนให้อัตโนมัติบนหน้า getscore1.com</p>
+    </div>
+  </div>
+
+  <div class="section-block">
+    <div class="section-header">
+      <span class="section-title">Bookmark Bar คืออะไร? เปิดยังไง?</span>
+      <span class="material-icons-outlined chevron">expand_more</span>
+    </div>
+    <div class="list-rows">
+      <div class="list-row">
+        <div class="row-icon-badge" style="background:#1A73E8">
+          <span class="material-icons-outlined">bookmarks</span>
+        </div>
+        <span class="row-label">Bookmark Bar = แถบลายแท่งใต้ช่องที่อยู่ URL (อยู่ระหว่างแถบ tab กับหน้าเว็บ)</span>
+      </div>
+      <div class="list-row">
+        <div class="row-icon-badge" style="background:#1A73E8">
+          <span class="material-icons-outlined">keyboard</span>
+        </div>
+        <span class="row-label">ถ้ายังไม่เห็น แสดงด้วย <strong>Ctrl+Shift+B</strong> (Chrome/Edge) หรือเมนู ⋮ → Bookmarks → Show bookmarks bar</span>
+      </div>
+      <div class="list-row">
+        <div class="row-icon-badge" style="background:#1A73E8">
+          <span class="material-icons-outlined">mouse</span>
+        </div>
+        <span class="row-label">ลากปุ่ม <strong>TA Autofill</strong> ด้านล่างไปวางบนแถบ Bookmark Bar (ทำครั้งเดียว)</span>
+      </div>
     </div>
   </div>
 
@@ -24,34 +51,34 @@
         <div class="row-icon-badge" style="background:#1A73E8">
           <span class="material-icons-outlined">looks_one</span>
         </div>
-        <span class="row-label">ลาก <strong>TA Autofill</strong> ด้านล่างไปวางที่ Bookmark Bar</span>
+        <span class="row-label">ลาก <strong>TA Autofill</strong> ไปวางที่ Bookmark Bar (ทำครั้งเดียว)</span>
       </div>
       <div class="list-row">
         <div class="row-icon-badge" style="background:#1A73E8">
           <span class="material-icons-outlined">looks_two</span>
         </div>
-        <span class="row-label">กดปุ่ม <strong>"ให้คะแนน"</strong> ในหน้า Submissions — จะเปิด getscore1.com ใน tab เดิม</span>
+        <span class="row-label">ล็อกอิน Google บนหน้า <strong>getscore1.com</strong> ให้เสร็จก่อน (ครั้งแรกเท่านั้น)</span>
       </div>
       <div class="list-row">
         <div class="row-icon-badge" style="background:#1A73E8">
           <span class="material-icons-outlined">looks_3</span>
         </div>
-        <span class="row-label">กด <strong>TA Autofill</strong> ใน Bookmark Bar — ฟอร์มจะถูกกรอกอัตโนมัติ</span>
+        <span class="row-label">ในหน้า Submissions กดปุ่ม <strong>"ให้คะแนนเว็บ"</strong> — เบราว์เซอร์เปิด getscore1.com พร้อมข้อมูลนักศึกษาคนนั้น</span>
       </div>
       <div class="list-row">
         <div class="row-icon-badge" style="background:#137333">
           <span class="material-icons-outlined">looks_4</span>
         </div>
-        <span class="row-label">กด <strong>"บันทึกคะแนน"</strong> ในเว็บ getscore1.com</span>
+        <span class="row-label">กดปุ่ม <strong>TA Autofill</strong> ที่อยู่บน Bookmark Bar — กรอกวิชา/แลป/รหัส/คะแนน และกดบันทึกให้อัตโนมัติ</span>
       </div>
     </div>
   </div>
 
   <!-- Bookmarklet drag area -->
   <div style="margin-top:32px;padding:32px;border:2px dashed var(--color-border);border-radius:12px;text-align:center">
-    <p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:20px">ลากปุ่มนี้ไปวางที่ Bookmark Bar</p>
+    <p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:20px">ลากปุ่มนี้ไปวางที่ Bookmark Bar (ครั้งเดียว)</p>
     <a id="bookmarklet-btn"
-       href="{{ bookmarklet }}"
+       href="{{ bookmarklet | safe }}"
        style="display:inline-flex;align-items:center;gap:8px;background:var(--color-primary-blue);color:#fff;border-radius:24px;padding:12px 28px;font-size:15px;font-weight:500;text-decoration:none;cursor:grab;user-select:none">
       <span class="material-icons-outlined">bookmark_add</span>
       TA Autofill
@@ -59,6 +86,75 @@
     <p style="font-size:12px;color:var(--color-text-secondary);margin-top:16px">
       ถ้าลากไม่ได้ ให้คลิกขวาที่ปุ่ม → <strong>Bookmark link</strong>
     </p>
+    <div style="margin-top:16px">
+      <button id="copy-href" class="btn-primary" style="font-size:13px;padding:8px 16px">
+        <span class="material-icons-outlined" style="font-size:16px">content_copy</span>
+        ยังลากไม่ได้? คัดลอกลิงก์ แล้วสร้าง bookmark ใหม่ที่หน้า Bookmarks
+      </button>
+      <p id="copy-done" style="font-size:12px;color:#137333;margin-top:8px;display:none">คัดลอกแล้ว — เปิด Bookmark Manager (Ctrl+Shift+O) → Add new bookmark → วางลิงก์ → Save</p>
+    </div>
+  </div>
+
+  <!-- Alternative: extension (no bookmark) -->
+  <div class="promo-banner" style="margin-top:32px;background:var(--color-accent-tint)">
+    <span class="material-icons-outlined promo-icon" style="font-size:40px;color:var(--color-primary-blue)">extension</span>
+    <div class="promo-body">
+      <h3>ทางเลือก: ติดตั้ง Extension — กดปุ่มเดียว ไม่ต้องใช้ Bookmark</h3>
+      <p>ติดตั้งครั้งเดียวบนเบราว์เซอร์เครื่องนั้น แล้วแค่กดปุ่ม <strong>"ให้คะแนนเว็บ"</strong> ในหน้า Submissions — เปิดหน้า getscore1 พร้อมกรอกและส่งคะแนนให้อัตโนมัติ</p>
+    </div>
+  </div>
+
+  <div class="section-block">
+    <div class="section-header">
+      <span class="section-title">ขั้นตอนติดตั้ง (ครั้งเดียวต่อเครื่อง)</span>
+      <span class="material-icons-outlined chevron">expand_more</span>
+    </div>
+    <div class="list-rows">
+      <div class="list-row">
+        <div class="row-icon-badge" style="background:#137333">
+          <span class="material-icons-outlined">download</span>
+        </div>
+        <span class="row-label">ดาวน์โหลดไฟล์ 2 ไฟล์นี้เข้าโฟลเดอร์ใหม่ชื่อ <strong>ta-autofill</strong> —
+          <a href="/extension/manifest.json" download style="color:var(--color-primary-blue)">manifest.json</a> และ
+          <a href="/extension/content.js" download style="color:var(--color-primary-blue)">content.js</a></span>
+      </div>
+      <div class="list-row">
+        <div class="row-icon-badge" style="background:#1A73E8">
+          <span class="material-icons-outlined">extension</span>
+        </div>
+        <span class="row-label">เปิดหน้า <strong>chrome://extensions</strong> (Chrome) หรือ <strong>edge://extensions</strong> (Edge)</span>
+      </div>
+      <div class="list-row">
+        <div class="row-icon-badge" style="background:#1A73E8">
+          <span class="material-icons-outlined">tune</span>
+        </div>
+        <span class="row-label">เปิดโหมด <strong>Developer mode</strong> (สวิตช์มุมขวาบน)</span>
+      </div>
+      <div class="list-row">
+        <div class="row-icon-badge" style="background:#137333">
+          <span class="material-icons-outlined">folder_open</span>
+        </div>
+        <span class="row-label">กด <strong>Load unpacked</strong> → เลือกโฟลเดอร์ <strong>ta-autofill</strong> → ควรเห็น "TA Class Autofill" ขึ้นมา</span>
+      </div>
+      <div class="list-row">
+        <div class="row-icon-badge" style="background:#9334E6">
+          <span class="material-icons-outlined">check_circle</span>
+        </div>
+        <span class="row-label">เสร็จแล้วใช้ได้เลย: ในหน้า Submissions กดปุ่ม <strong>"ให้คะแนนเว็บ"</strong> → extension กรอกและบันทึกคะแนนให้อัตโนมัติ (ล็อกอิน Google บน getscore1 ให้ครบก่อน ครั้งแรก)</span>
+      </div>
+    </div>
   </div>
 </div>
+
+<script>
+  document.getElementById('copy-href')?.addEventListener('click', async () => {
+    const href = document.getElementById('bookmarklet-btn').href;
+    try {
+      await navigator.clipboard.writeText(href);
+      document.getElementById('copy-done').style.display = 'block';
+    } catch (e) {
+      prompt('กด Ctrl+C เพื่อคัดลอกลิงก์นี้:', href);
+    }
+  });
+</script>
 {% endblock %}

@@ -17,6 +17,11 @@
     <button class="icon-btn" title="Refresh" onclick="location.reload()">
       <span class="material-icons-outlined">refresh</span>
     </button>
+    {% if can_web_grade %}
+    <button class="icon-btn" title="ให้คะแนนทุกคน (เว็บ)" id="grade-all">
+      <span class="material-icons-outlined">how_to_reg</span>
+    </button>
+    {% endif %}
     <button class="icon-btn" title="ล้างสถานะให้คะแนน" id="reset-graded">
       <span class="material-icons-outlined">restart_alt</span>
     </button>
@@ -25,6 +30,88 @@
     </button>
   </div>
 </div>
+
+<style>
+  .grade-dropdown { position: relative; display: inline-block; }
+  .grade-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #137333; color: #fff;
+    border: none; border-radius: 20px;
+    padding: 6px 14px; font-size: 13px; font-weight: 500;
+    cursor: pointer; font-family: "Google Sans", sans-serif;
+    transition: background .15s;
+  }
+  .grade-btn:hover { background: #0d5c2b; }
+  .grade-btn.graded {
+    background: #E6F4EA; color: #137333;
+    border: 1px solid #137333;
+  }
+  .grade-btn.graded:hover { background: #D8EBDD; }
+  .grade-menu {
+    position: absolute; top: calc(100% + 6px); right: 0; z-index: 90;
+    background: #fff; border: 1px solid var(--color-border);
+    border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.14);
+    min-width: 300px; padding: 16px;
+    display: none;
+  }
+  .grade-dropdown.open .grade-menu { display: block; }
+  .gm-header {
+    font-family: "Google Sans", sans-serif;
+    font-weight: 500; font-size: 14px; margin-bottom: 12px;
+  }
+  .gm-label { font-size: 12px; color: var(--color-text-secondary); display: block; }
+  .gm-label-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .gm-score-row {
+    display: flex; align-items: center; gap: 8px;
+    margin: 6px 0 12px;
+  }
+  .gm-score {
+    border: 1px solid var(--color-border); border-radius: 6px;
+    padding: 8px 10px; font-size: 14px; width: 90px;
+  }
+  .gm-score:focus { outline: none; border-color: var(--color-primary-blue); border-width: 2px; }
+  .gm-max { font-size: 13px; color: var(--color-text-secondary); }
+  .gm-warn {
+    display: flex; gap: 6px; align-items: flex-start;
+    background: #FCE8E6; color: #C5221F;
+    border-radius: 8px;
+    padding: 8px 10px; font-size: 12px;
+    margin-bottom: 12px; line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+  .gm-warn .material-icons-outlined { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+  .gm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .gm-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border: none; border-radius: 8px; padding: 9px 10px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: "Google Sans", sans-serif;
+    color: #fff; text-align: center;
+    text-decoration: none;
+  }
+  .gm-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .gm-btn .material-icons-outlined { font-size: 16px; }
+  .gm-open {
+    background: #fff; color: var(--color-primary-blue);
+    border: 1px solid var(--color-primary-blue);
+  }
+  .gm-open:hover { background: var(--color-accent-tint); }
+  .gm-web { background: #9334E6; }
+  .gm-web:hover:not(:disabled) { background: #7b1fa2; }
+  .gm-hint {
+    font-size: 12px; color: var(--color-text-secondary);
+    background: var(--color-bg-subtle); border-radius: 8px;
+    padding: 8px 10px; line-height: 1.5;
+  }
+  .gm-hint strong { color: var(--color-primary-blue); }
+  .file-warn {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: #C5221F;
+    background: #FCE8E6; border-radius: 10px;
+    padding: 3px 8px; margin-left: 8px;
+    white-space: nowrap;
+  }
+</style>
 
 <div class="content-area">
   <!-- Dropdowns เลือกวิชา/แลป -->
@@ -132,15 +219,70 @@
               </td>
               <td style="padding:12px 16px;white-space:nowrap">
                 {% if e.state == 'TURNED_IN' and e.exercise_id %}
-                <a href="https://getscore1.com/ta_score.php#last4={{ e.last4 or '' }}&score={{ e.max_points }}&exercise_id={{ e.exercise_id }}&classid=2569CP412703"
-                   target="getscore_tab"
-                   class="grade-btn"
-                   data-sid="{{ e.submission_id }}"
-                   data-key="{{ coursework_id }}_{{ e.submission_id }}"
-                   style="display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:6px 14px;font-size:13px;font-weight:500;text-decoration:none">
-                  <span class="material-icons-outlined" style="font-size:15px">grade</span>
-                  <span class="btn-label">ให้คะแนน</span>
-                </a>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="grade-dropdown">
+                    <button type="button" class="grade-btn"
+                            data-key="{{ coursework_id }}_{{ e.submission_id }}"
+                            data-last4="{{ e.last4 or '' }}"
+                            data-exercise="{{ e.exercise_id }}"
+                            data-max="{{ e.max_points }}">
+                      <span class="material-icons-outlined" style="font-size:15px">grade</span>
+                      <span class="btn-label">ให้คะแนน</span>
+                      <span class="material-icons-outlined" style="font-size:16px">arrow_drop_down</span>
+                    </button>
+                    <div class="grade-menu">
+                      <div class="gm-header">ให้คะแนน</div>
+
+                      <div class="gm-label-row">
+                        <label class="gm-label">คะแนน (เต็ม {{ e.max_points }})</label>
+                        <span class="gm-max">/ {{ e.max_points }}</span>
+                      </div>
+                      <div class="gm-score-row">
+                        <input type="number" class="gm-score" value="{{ e.max_points }}"
+                               min="0" max="{{ e.max_points }}" step="1">
+                      </div>
+
+                      {% if not e.last4 %}
+                      <div class="gm-warn">
+                        <span class="material-icons-outlined">warning</span>
+                        <span>
+                          ไม่พบรหัสนักศึกษา (ขึ้นต้น 65-68) ในชื่อไฟล์:
+                          {% for f in e.filenames %}{{ f.title }}{% if not loop.last %}, {% endif %}{% endfor %}
+                          <br>ให้ตั้งชื่อตามแบบ <strong>Lab01_&lt;รหัสนักศึกษา&gt;&lt;ชื่อ นามสกุล&gt;.ipynb</strong>
+                        </span>
+                      </div>
+                      {% endif %}
+
+                      <div class="gm-actions">
+                        <a class="gm-btn gm-open" href="{{ e.classroom_link }}" target="_blank"
+                           {% if not e.classroom_link %}style="pointer-events:none;opacity:.45" title="ไม่มีลิงก์งาน"{% elif not can_web_grade %}style="grid-column:1/-1"{% endif %}>
+                          <span class="material-icons-outlined">open_in_new</span> เปิดคลาสรูม
+                        </a>
+                        {% if can_web_grade %}
+                        <button type="button" class="gm-btn gm-web"
+                                data-exercise="{{ e.exercise_id }}"
+                                data-last4="{{ e.last4 or '' }}">
+                          <span class="material-icons-outlined">public</span> ให้คะแนนเว็บ
+                        </button>
+                        {% endif %}
+                      </div>
+                      {% if can_web_grade %}
+                      <div class="gm-hint">
+                        เปิดเว็บ getscore1 พร้อมข้อมูลคนนี้ แล้วกรอกและส่งคะแนนให้อัตโนมัติ — ล็อกอิน Google บนเว็บแค่ครั้งแรก
+                        จากนั้น tab จะค้างล็อกอินไว้ ใช้คนถัดไปได้เลยโดยไม่ต้องล็อกอินใหม่
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% if not e.last4 %}
+                  <span class="file-warn" title="ชื่อไฟล์ไม่ตรงตามแบบ Lab01_<รหัสนักศึกษา><ชื่อ นามสกุล>.ipynb">
+                    <span class="material-icons-outlined" style="font-size:13px">warning</span>
+                    ชื่อไฟล์ผิดรูปแบบ
+                  </span>
+                  {% endif %}
+                </div>
+                {% else %}
+                <span style="font-size:12px;color:var(--color-text-secondary)">—</span>
                 {% endif %}
               </td>
             </tr>
@@ -164,6 +306,11 @@
   {% endif %}
 </div>
 
+<div id="grade-all-noti" style="position:fixed;bottom:24px;right:24px;z-index:999;max-width:380px;display:none;background:#fff;border:1px solid var(--color-border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:14px 16px;font-size:13px;line-height:1.6;color:var(--color-text-primary)">
+  <div id="grade-all-noti-body"></div>
+  <button id="grade-all-noti-close" style="margin-top:10px;background:var(--color-accent-tint);color:var(--color-primary-blue);border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">ปิด</button>
+</div>
+
 <script>
   const STORAGE_KEY = 'graded_{{ coursework_id }}';
 
@@ -177,40 +324,90 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(graded));
   }
 
-  function applyGradedStyles() {
-    const graded = getGraded();
-    document.querySelectorAll('.grade-btn').forEach(btn => {
-      const key = btn.dataset.key;
-      const row = btn.closest('tr');
-      if (graded[key]) {
-        btn.style.background = '#E6F4EA';
-        btn.style.color = '#137333';
-        btn.style.border = '1px solid #137333';
-        btn.querySelector('.btn-label').textContent = 'ให้คะแนนแล้ว';
-        btn.querySelector('.material-icons-outlined').textContent = 'check_circle';
-        if (row) row.style.background = '#F6FBF6';
-      } else {
-        btn.style.background = '#137333';
-        btn.style.color = '#fff';
-        btn.style.border = 'none';
-      }
-    });
+  function clampScore(input) {
+    const min = parseFloat(input.min) || 0;
+    const max = parseFloat(input.max);
+    let v = parseFloat(input.value);
+    if (isNaN(v)) v = min;
+    v = Math.min(Math.max(v, min), isNaN(max) ? v : max);
+    input.value = v;
+    return v;
   }
 
-  document.querySelectorAll('.grade-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      markGraded(btn.dataset.key);
-      setTimeout(applyGradedStyles, 300);
-    });
+  function openWebGrade(webBtn) {
+    const dd = webBtn.closest('.grade-dropdown');
+    const input = dd.querySelector('.gm-score');
+    const score = clampScore(input);
+    const last4 = webBtn.dataset.last4 || '';
+    if (!last4) {
+      alert('ชื่อไฟล์นี้ไม่มีรหัสนักศึกษา (ขึ้นต้น 65-68) — ส่งคะแนนเว็บไม่ได้');
+      return;
+    }
+    const url = 'https://getscore1.com/ta_score.php#classid={{ class_id }}'
+      + '&exercise_id=' + encodeURIComponent(webBtn.dataset.exercise)
+      + '&last4=' + encodeURIComponent(last4)
+      + '&score=' + encodeURIComponent(score);
+    // เปิด getscore1 (เปิดฉากหลัง ไม่งัดโฟกัส) แล้วกลับมาหน้า Submissions —
+    // tab นี้จะค้างล็อกอินไว้ ใช้คนถัดไปต่อโดยไม่ต้องล็อกอินใหม่
+    const win = window.open(url, 'getscore_tab');
+    if (win) {
+      try { win.blur(); } catch (e) { /* ignore */ }
+      window.focus();
+    }
+    markGraded(webBtn.closest('.grade-dropdown').querySelector('.grade-btn').dataset.key);
+    applyRowGraded(webBtn.closest('.grade-dropdown').querySelector('.grade-btn'));
+  }
+
+  document.addEventListener('click', function (e) {
+    const toggle = e.target.closest('.grade-btn');
+    if (toggle) {
+      e.preventDefault();
+      const dd = toggle.closest('.grade-dropdown');
+      document.querySelectorAll('.grade-dropdown.open').forEach(d => {
+        if (d !== dd) d.classList.remove('open');
+      });
+      dd.classList.toggle('open');
+      return;
+    }
+
+    const webBtn = e.target.closest('.gm-web');
+    if (webBtn) {
+      e.preventDefault();
+      openWebGrade(webBtn);
+      return;
+    }
+
+    if (!e.target.closest('.grade-dropdown')) {
+      document.querySelectorAll('.grade-dropdown.open').forEach(d => d.classList.remove('open'));
+    }
   });
+
+  function applyRowGraded(btn) {
+    const key = btn.dataset.key;
+    const graded = getGraded();
+    const row = btn.closest('tr');
+    if (graded[key]) {
+      btn.classList.add('graded');
+      btn.querySelector('.btn-label').textContent = 'ให้คะแนนแล้ว';
+      const icon = btn.querySelector('.material-icons-outlined');
+      icon.textContent = 'check_circle';
+      if (row) row.style.background = '#F6FBF6';
+    }
+  }
+
+  document.querySelectorAll('.grade-btn').forEach(applyRowGraded);
 
   // ปุ่ม reset สำหรับล้าง graded ทั้งหมดของแลปนี้
   document.getElementById('reset-graded')?.addEventListener('click', () => {
     localStorage.removeItem(STORAGE_KEY);
-    applyGradedStyles();
+    document.querySelectorAll('.grade-btn').forEach(btn => {
+      btn.classList.remove('graded');
+      btn.querySelector('.btn-label').textContent = 'ให้คะแนน';
+      btn.querySelector('.material-icons-outlined').textContent = 'grade';
+      const row = btn.closest('tr');
+      if (row) row.style.background = '';
+    });
   });
-
-  applyGradedStyles();
 
   function collapseAll() {
     document.querySelectorAll('.section-header').forEach(h => {
@@ -219,5 +416,107 @@
       if (rows) rows.style.display = 'none';
     });
   }
+
+  // ---- ให้คะแนนทุกคน (ผ่านเว็บ getscore1, tab เดิมล็อกอินค้าง) ----
+  const GRADE_ITEMS = {{ grade_items | tojson }};
+  const GRADE_SKIPPED = {{ grade_skipped | tojson }};
+  const notiEl = document.getElementById('grade-all-noti');
+  const notiBody = document.getElementById('grade-all-noti-body');
+  let gradeAllBusy = false;
+  const doneBuffer = {};   // last4 ที่ extension ยืนยันว่าบันทึกสำเร็จแล้ว
+
+  window.addEventListener('message', (e) => {
+    const d = e.data || {};
+    if (d.source === 'ta-autofill' && d.type === 'done' && d.last4) {
+      doneBuffer[d.last4] = true;
+    }
+  });
+
+  function showGradeNoti(html, persist) {
+    notiBody.innerHTML = html;
+    notiEl.style.display = 'block';
+    clearTimeout(showGradeNoti._t);
+    if (!persist) {
+      showGradeNoti._t = setTimeout(() => { notiEl.style.display = 'none'; }, 5000);
+    }
+  }
+
+  function waitSubmit(last4, ms) {
+    return new Promise(resolve => {
+      if (doneBuffer[last4]) { delete doneBuffer[last4]; return resolve(true); }
+      const t0 = Date.now();
+      const iv = setInterval(() => {
+        if (doneBuffer[last4]) {
+          delete doneBuffer[last4];
+          clearInterval(iv);
+          resolve(true);
+        } else if (Date.now() - t0 > ms) {
+          clearInterval(iv);
+          resolve(false);
+        }
+      }, 300);
+    });
+  }
+
+  async function gradeAll() {
+    if (gradeAllBusy) return;
+    if (!GRADE_ITEMS.length) {
+      showGradeNoti('<b>ไม่มีคนที่ให้คะแนนได้</b> — เลือกแลปที่มีสถานะ "ส่งแล้ว" แล้วลองใหม่', false);
+      return;
+    }
+    if (!confirm(
+      `ให้คะแนนทุกคนผ่านเว็บ getscore1 จำนวน ${GRADE_ITEMS.length} คน?` +
+      `\n(คนที่ชื่อไฟล์ผิดรูปแบบ ${GRADE_SKIPPED.length} คน จะข้ามและแจ้งให้ทราบ)`
+    )) return;
+
+    gradeAllBusy = true;
+    const btn = document.getElementById('grade-all');
+    btn.disabled = true;
+
+    const failed = [];
+    for (let i = 0; i < GRADE_ITEMS.length; i++) {
+      const it = GRADE_ITEMS[i];
+      showGradeNoti(
+        `<b>ให้คะแนน ${i + 1}/${GRADE_ITEMS.length}</b><br>${it.name} (${it.last4})`
+      );
+      const url = 'https://getscore1.com/ta_score.php#classid={{ class_id }}'
+        + '&exercise_id=' + encodeURIComponent(it.exercise_id)
+        + '&last4=' + encodeURIComponent(it.last4)
+        + '&score=' + encodeURIComponent(it.score);
+      const win = window.open(url, 'getscore_tab');
+      if (win) {
+        try { win.blur(); } catch (e) { /* ignore */ }
+        window.focus();
+      }
+      // คนแรกให้เวลานาน (เผื่อต้องล็อกอินบน getscore1) คนถัดไปสั้นเพราะล็อกอินค้างอยู่แล้ว
+      const ok = await waitSubmit(it.last4, i === 0 ? 60000 : 30000);
+      if (ok) markRowGraded(it.key);
+      else failed.push(it.name);
+    }
+
+    btn.disabled = false;
+    gradeAllBusy = false;
+
+    const parts = [];
+    const doneCnt = GRADE_ITEMS.length - failed.length;
+    if (doneCnt) parts.push(`ให้คะแนนสำเร็จ ${doneCnt} คน`);
+    if (failed.length) parts.push(`ยังไม่ยืนยัน ${failed.length} คน: ${failed.join(', ')}`);
+    if (GRADE_SKIPPED.length) {
+      parts.push(`<span style="color:#C5221F">ข้าม (ชื่อไฟล์ผิดรูปแบบ หา last4 ไม่ได้) ${GRADE_SKIPPED.length} คน ยังไม่ได้ให้คะแนน: ${GRADE_SKIPPED.join(', ')}</span>`);
+    }
+    showGradeNoti('<b>เสร็จสิ้น</b><br>' + parts.join('<br>'), true);
+  }
+
+  function markRowGraded(key) {
+    if (!key) return;
+    markGraded(key);
+    const btn = document.querySelector(`.grade-btn[data-key="${key}"]`);
+    if (btn) applyRowGraded(btn);
+  }
+
+  document.getElementById('grade-all')?.addEventListener('click', gradeAll);
+  document.getElementById('grade-all-noti-close')?.addEventListener('click', () => {
+    notiEl.style.display = 'none';
+  });
 </script>
 {% endblock %}
