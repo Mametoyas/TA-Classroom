@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "TA Class Autofill",
+  "version": "1.0",
+  "description": "กรอกและส่งคะแนนอัตโนมัติบน getscore1.com เมื่อเปิดผ่านปุ่ม \"ให้คะแนนเว็บ\" จาก TA-Classroom (ไม่ต้องใช้ bookmarklet)",
+  "content_scripts": [
+    {
+      "matches": ["https://getscore1.com/ta_score.php*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
