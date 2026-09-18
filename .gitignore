@@ -1,0 +1,24 @@
+# Google OAuth secrets — อย่าอัปโหลดขึ้น git
+credentials.json
+token.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Environment
+.env
+.env.local
+
+# Flask
+instance/
+
+# Output / artifacts (สำหรับรันกันเอง)
+submissions.txt
+
+# OS
+.DS_Store
+Thumbs.db

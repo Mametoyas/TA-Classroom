@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% set breadcrumb = "Submissions" %}
+{% block content %}
+
+<div class="tab-bar">
+  <a class="tab-item {% if not active_state %}active{% endif %}"
+     href="/submissions?course_id={{ course_id }}&coursework_id={{ coursework_id }}">ทั้งหมด</a>
+  {% for (state, label, badge_cls), entries in grouped.items() %}
+  <a class="tab-item {% if active_state == state %}active{% endif %}"
+     href="/submissions?course_id={{ course_id }}&coursework_id={{ coursework_id }}&state={{ state }}">
+    {{ label }}
+    <span style="margin-left:6px;background:var(--color-accent-tint);color:var(--color-primary-blue);border-radius:10px;padding:1px 7px;font-size:12px">{{ entries|length }}</span>
+  </a>
+  {% endfor %}
+  <div class="tab-spacer"></div>
+  <div class="tab-utils">
+    <button class="icon-btn" title="Refresh" onclick="location.reload()">
+      <span class="material-icons-outlined">refresh</span>
+    </button>
+    <button class="icon-btn" title="ล้างสถานะให้คะแนน" id="reset-graded">
+      <span class="material-icons-outlined">restart_alt</span>
+    </button>
+    <button class="icon-btn" title="Collapse all" onclick="collapseAll()">
+      <span class="material-icons-outlined">unfold_less</span>
+    </button>
+  </div>
+</div>
+
+<div class="content-area">
+  <!-- Dropdowns เลือกวิชา/แลป -->
+  <form method="get" action="/submissions" id="filter-form">
+    <div class="filter-row" style="flex-wrap:wrap;gap:12px;margin-bottom:32px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-size:12px;color:var(--color-text-secondary);font-weight:500">วิชา</label>
+        <select name="course_id" class="filter-select" onchange="var cw=this.form.querySelector('[name=coursework_id]'); if(cw) cw.value=''; this.form.submit()" style="min-width:280px">
+          <option value="">เลือกวิชา...</option>
+          {% for c in all_courses %}
+          <option value="{{ c.id }}" {% if c.id == course_id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-size:12px;color:var(--color-text-secondary);font-weight:500">แลป</label>
+        <select name="coursework_id" class="filter-select" onchange="this.form.submit()" style="min-width:200px" {% if not course_id %}disabled{% endif %}>
+          <option value="">เลือกแลป...</option>
+          {% for w in all_works %}
+          <option value="{{ w.id }}" {% if w.id == coursework_id %}selected{% endif %}>{{ w.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if max_points is not none %}
+      <div style="display:flex;flex-direction:column;gap:4px;justify-content:flex-end">
+        <label style="font-size:12px;color:var(--color-text-secondary);font-weight:500">คะแนนเต็ม</label>
+        <span style="font-family:'Google Sans',sans-serif;font-size:20px;font-weight:500;color:var(--color-primary-blue);padding:6px 0">{{ max_points }}</span>
+      </div>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if not course_id or not coursework_id %}
+    <div style="padding:48px;text-align:center;color:var(--color-text-secondary)">
+      <span class="material-icons-outlined" style="font-size:48px;display:block;margin-bottom:8px">filter_list</span>
+      เลือกวิชาและแลปเพื่อดูการส่งงาน
+    </div>
+
+  {% elif filtered_entries is not none %}
+    <!-- Summary chips -->
+    <div class="summary-row">
+      {% set total = namespace(n=0) %}
+      {% for (state, label, badge_cls), entries in grouped.items() %}
+        {% set total.n = total.n + entries|length %}
+        <div class="summary-chip">
+          <span class="count">{{ entries|length }}</span>
+          <span class="status-chip chip-{{ state|lower|replace('_','-') }}">{{ label }}</span>
+        </div>
+      {% endfor %}
+      <div class="summary-chip">
+        <span class="count">{{ total.n }}</span>
+        <span class="label" style="color:var(--color-text-secondary)">ทั้งหมด</span>
+      </div>
+    </div>
+
+    <!-- List -->
+    {% if filtered_entries %}
+    <div class="section-block">
+      <div class="section-header">
+        <span class="section-title">
+          {% if active_state %}
+            {% for (state, label, badge_cls), entries in grouped.items() %}
+              {% if state == active_state %}<span class="status-chip chip-{{ state|lower|replace('_','-') }}">{{ label }}</span>{% endif %}
+            {% endfor %}
+          {% else %}
+            การส่งงานทั้งหมด
+          {% endif %}
+        </span>
+        <span style="font-size:13px;color:var(--color-text-secondary);margin-right:8px">{{ filtered_entries|length }} คน</span>
+        <span class="material-icons-outlined chevron">expand_more</span>
+      </div>
+      <div class="list-rows">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ชื่อนักศึกษา</th>
+              <th>สถานะ</th>
+              <th>ไฟล์ที่ส่ง</th>
+              <th>ให้คะแนน</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in filtered_entries %}
+            <tr>
+              <td style="padding:12px 16px;color:var(--color-text-secondary);width:40px">{{ loop.index }}</td>
+              <td style="padding:12px 16px;font-weight:500">{{ e.name }}</td>
+              <td style="padding:12px 16px;white-space:nowrap">
+                <span class="status-chip chip-{{ e.state|lower|replace('_','-') }}">
+                  {% for (state, label, badge_cls), entries in grouped.items() %}{% if state == e.state %}{{ label }}{% endif %}{% endfor %}
+                </span>
+              </td>
+              <td style="padding:12px 16px">
+                {% for f in e.filenames %}
+                  {% if f.link %}
+                  <a href="{{ f.link }}" target="_blank"
+                     style="display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--color-primary-blue);text-decoration:none;margin-right:8px">
+                    <span class="material-icons-outlined" style="font-size:14px">insert_drive_file</span>
+                    {{ f.title }}
+                  </a>
+                  {% else %}
+                  <span style="font-size:13px;color:var(--color-text-secondary)">{{ f.title }}</span>
+                  {% endif %}
+                {% endfor %}
+              </td>
+              <td style="padding:12px 16px;white-space:nowrap">
+                {% if e.state == 'TURNED_IN' and e.exercise_id %}
+                <a href="https://getscore1.com/ta_score.php#last4={{ e.last4 or '' }}&score={{ e.max_points }}&exercise_id={{ e.exercise_id }}&classid=2569CP412703"
+                   target="getscore_tab"
+                   class="grade-btn"
+                   data-sid="{{ e.submission_id }}"
+                   data-key="{{ coursework_id }}_{{ e.submission_id }}"
+                   style="display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:6px 14px;font-size:13px;font-weight:500;text-decoration:none">
+                  <span class="material-icons-outlined" style="font-size:15px">grade</span>
+                  <span class="btn-label">ให้คะแนน</span>
+                </a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% else %}
+    <div style="padding:48px;text-align:center;color:var(--color-text-secondary)">
+      <span class="material-icons-outlined" style="font-size:48px;display:block;margin-bottom:8px">inbox</span>
+      ไม่มีนักศึกษาในสถานะนี้
+    </div>
+    {% endif %}
+
+  {% else %}
+    <div style="padding:48px;text-align:center;color:var(--color-text-secondary)">
+      <span class="material-icons-outlined" style="font-size:48px;display:block;margin-bottom:8px">inbox</span>
+      ไม่พบข้อมูลการส่งงาน
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  const STORAGE_KEY = 'graded_{{ coursework_id }}';
+
+  function getGraded() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  }
+
+  function markGraded(key) {
+    const graded = getGraded();
+    graded[key] = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(graded));
+  }
+
+  function applyGradedStyles() {
+    const graded = getGraded();
+    document.querySelectorAll('.grade-btn').forEach(btn => {
+      const key = btn.dataset.key;
+      const row = btn.closest('tr');
+      if (graded[key]) {
+        btn.style.background = '#E6F4EA';
+        btn.style.color = '#137333';
+        btn.style.border = '1px solid #137333';
+        btn.querySelector('.btn-label').textContent = 'ให้คะแนนแล้ว';
+        btn.querySelector('.material-icons-outlined').textContent = 'check_circle';
+        if (row) row.style.background = '#F6FBF6';
+      } else {
+        btn.style.background = '#137333';
+        btn.style.color = '#fff';
+        btn.style.border = 'none';
+      }
+    });
+  }
+
+  document.querySelectorAll('.grade-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      markGraded(btn.dataset.key);
+      setTimeout(applyGradedStyles, 300);
+    });
+  });
+
+  // ปุ่ม reset สำหรับล้าง graded ทั้งหมดของแลปนี้
+  document.getElementById('reset-graded')?.addEventListener('click', () => {
+    localStorage.removeItem(STORAGE_KEY);
+    applyGradedStyles();
+  });
+
+  applyGradedStyles();
+
+  function collapseAll() {
+    document.querySelectorAll('.section-header').forEach(h => {
+      h.classList.add('collapsed');
+      const rows = h.nextElementSibling;
+      if (rows) rows.style.display = 'none';
+    });
+  }
+</script>
+{% endblock %}

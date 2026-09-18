@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="tab-bar">
+  <span class="tab-item active">ภาพรวม</span>
+  <div class="tab-spacer"></div>
+  <div class="tab-utils">
+    <button class="icon-btn" title="Refresh"><span class="material-icons-outlined">refresh</span></button>
+  </div>
+</div>
+
+<div class="content-area">
+  <!-- Promo Banner -->
+  <div class="promo-banner">
+    <span class="material-icons-outlined promo-icon" style="font-size:40px">auto_awesome</span>
+    <div class="promo-body">
+      <h3>TA Classroom Dashboard</h3>
+      <p>ดูรายชื่อคอร์ส งาน และการส่งงานของนักศึกษาได้จากเมนูด้านซ้าย</p>
+    </div>
+    <button class="icon-btn dismiss"><span class="material-icons-outlined">close</span></button>
+  </div>
+
+  <!-- Section -->
+  <div class="section-block">
+    <div class="section-header">
+      <span class="section-title">เมนูหลัก</span>
+      <span class="material-icons-outlined chevron">expand_more</span>
+    </div>
+    <div class="list-rows">
+      <a href="/courses" class="list-row" style="text-decoration:none">
+        <div class="row-icon-badge" style="background:#1A73E8">
+          <span class="material-icons-outlined">menu_book</span>
+        </div>
+        <span class="row-label">Courses — ดูรายชื่อคอร์สทั้งหมด</span>
+        <span class="row-meta">เข้าถึงได้ทั้งหมด</span>
+        <div class="row-actions">
+          <button class="icon-btn"><span class="material-icons-outlined">chevron_right</span></button>
+        </div>
+      </a>
+      <a href="/coursework" class="list-row" style="text-decoration:none">
+        <div class="row-icon-badge" style="background:#12B5CB">
+          <span class="material-icons-outlined">assignment</span>
+        </div>
+        <span class="row-label">Course Work — ดูรายการงานในคอร์ส</span>
+        <span class="row-meta">CP412703 sec 1, 3</span>
+        <div class="row-actions">
+          <button class="icon-btn"><span class="material-icons-outlined">chevron_right</span></button>
+        </div>
+      </a>
+      <a href="/submissions" class="list-row" style="text-decoration:none">
+        <div class="row-icon-badge" style="background:#F9AB00">
+          <span class="material-icons-outlined">fact_check</span>
+        </div>
+        <span class="row-label">Submissions — ดูการส่งงานของนักศึกษา</span>
+        <span class="row-meta">แบ่งตามสถานะ</span>
+        <div class="row-actions">
+          <button class="icon-btn"><span class="material-icons-outlined">chevron_right</span></button>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelector('.dismiss').addEventListener('click', function() {
+    this.closest('.promo-banner').style.display = 'none';
+  });
+</script>
+{% endblock %}

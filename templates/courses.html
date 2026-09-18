@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% set breadcrumb = "Courses" %}
+{% block content %}
+<div class="tab-bar">
+  <span class="tab-item active">รายชื่อคอร์ส</span>
+  <div class="tab-spacer"></div>
+  <div class="tab-utils">
+    <button class="icon-btn" title="Refresh" onclick="location.reload()">
+      <span class="material-icons-outlined">refresh</span>
+    </button>
+  </div>
+</div>
+
+<div class="content-area">
+  <div class="filter-row">
+    <span style="font-size:14px;color:var(--color-text-secondary)">{{ courses|length }} คอร์ส</span>
+    <div style="flex:1"></div>
+  </div>
+
+  <div class="section-block">
+    <div class="section-header">
+      <span class="section-title">คอร์สทั้งหมด</span>
+      <span class="material-icons-outlined chevron">expand_more</span>
+    </div>
+    <div class="list-rows">
+      {% set colors = ['#1A73E8','#F9AB00','#12B5CB','#9334E6','#137333','#C5221F'] %}
+      {% for c in courses %}
+      <div class="list-row">
+        <div class="row-icon-badge" style="background:{{ colors[loop.index0 % colors|length] }}">
+          <span class="material-icons-outlined">menu_book</span>
+        </div>
+        <span class="row-label">{{ c.name }}</span>
+        <span class="row-meta" style="font-style:normal;font-size:12px;color:var(--color-text-secondary)">{{ c.id }}</span>
+        <div class="row-actions">
+          <a href="/coursework?course_id={{ c.id }}" class="icon-btn" title="ดูงาน">
+            <span class="material-icons-outlined">assignment</span>
+          </a>
+          <a href="/submissions?course_id={{ c.id }}" class="icon-btn" title="ดูการส่งงาน">
+            <span class="material-icons-outlined">fact_check</span>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TA Classroom</title>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-primary-blue: #1A73E8;
+      --color-accent-tint: #E8F0FE;
+      --color-bg: #FFFFFF;
+      --color-bg-subtle: #F8F9FA;
+      --color-text-primary: #202124;
+      --color-text-secondary: #5F6368;
+      --color-border: #DADCE0;
+      --color-selected-bg: #C2E7FF;
+      --sidebar-width: 270px;
+      --appbar-height: 64px;
+    }
+
+    body {
+      font-family: "Roboto", "Google Sans", -apple-system, "Segoe UI", sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text-primary);
+      font-size: 14px;
+    }
+
+    /* ── Top App Bar ── */
+    .app-bar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--appbar-height);
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center;
+      padding: 0 16px 0 0;
+      z-index: 100;
+      gap: 8px;
+    }
+    .app-bar .menu-btn {
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; cursor: pointer; flex-shrink: 0;
+      color: var(--color-text-secondary);
+      transition: background .1s;
+    }
+    .app-bar .menu-btn:hover { background: var(--color-bg-subtle); }
+    .app-bar .logo-area {
+      display: flex; align-items: center; gap: 4px;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .app-bar .logo-area .product-name {
+      font-family: "Google Sans", sans-serif;
+      font-size: 22px; font-weight: 500;
+      color: var(--color-text-secondary);
+    }
+    .app-bar .breadcrumb {
+      display: flex; align-items: center; gap: 4px;
+      color: var(--color-text-secondary); font-size: 18px;
+      overflow: hidden;
+    }
+    .app-bar .breadcrumb .chevron { font-size: 20px; }
+    .app-bar .breadcrumb .course-name {
+      color: var(--color-text-primary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 320px;
+    }
+    .app-bar .spacer { flex: 1; }
+    .app-bar .util-cluster {
+      display: flex; align-items: center; gap: 4px;
+    }
+    .icon-btn {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; cursor: pointer;
+      color: var(--color-text-secondary);
+      transition: background .1s;
+      border: none; background: transparent;
+    }
+    .icon-btn:hover { background: var(--color-bg-subtle); }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--color-primary-blue);
+      color: #fff; font-size: 14px; font-weight: 500;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed; top: var(--appbar-height); left: 0; bottom: 0;
+      width: var(--sidebar-width);
+      background: var(--color-bg);
+      overflow-y: auto;
+      padding: 8px 0;
+      z-index: 90;
+    }
+    .nav-section-label {
+      font-size: 11px; font-weight: 500; letter-spacing: .8px;
+      color: var(--color-text-secondary);
+      padding: 16px 16px 4px;
+      text-transform: uppercase;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 16px;
+      height: 48px;
+      border-radius: 0 24px 24px 0;
+      cursor: pointer;
+      color: var(--color-text-primary);
+      text-decoration: none;
+      font-size: 14px;
+      transition: background .1s;
+      margin-right: 16px;
+    }
+    .nav-item:hover { background: var(--color-bg-subtle); }
+    .nav-item.active {
+      background: var(--color-selected-bg);
+      font-weight: 500;
+    }
+    .nav-item .material-icons-outlined { font-size: 20px; color: var(--color-text-secondary); }
+    .nav-item.active .material-icons-outlined { color: var(--color-text-primary); }
+    .nav-divider { height: 1px; background: var(--color-border); margin: 8px 0; }
+
+    /* ── Main Content ── */
+    .main-wrap {
+      margin-top: var(--appbar-height);
+      margin-left: var(--sidebar-width);
+      min-height: calc(100vh - var(--appbar-height));
+    }
+
+    /* ── Secondary Tab Bar ── */
+    .tab-bar {
+      display: flex; align-items: center;
+      border-bottom: 1px solid var(--color-border);
+      padding: 0 24px;
+      background: var(--color-bg);
+      position: sticky; top: 0; z-index: 80;
+    }
+    .tab-item {
+      display: flex; align-items: center;
+      height: 48px; padding: 0 16px;
+      font-size: 14px; font-weight: 500;
+      color: var(--color-text-secondary);
+      cursor: pointer; text-decoration: none;
+      border-bottom: 3px solid transparent;
+      transition: color .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .tab-item:hover { color: var(--color-text-primary); }
+    .tab-item.active {
+      color: var(--color-primary-blue);
+      border-bottom-color: var(--color-primary-blue);
+    }
+    .tab-spacer { flex: 1; }
+    .tab-utils { display: flex; align-items: center; gap: 4px; }
+
+    /* ── Content Area ── */
+    .content-area { padding: 24px 32px; max-width: 900px; }
+
+    /* ── Promo Banner ── */
+    .promo-banner {
+      background: var(--color-accent-tint);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex; align-items: flex-start; gap: 16px;
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .promo-banner .promo-icon { color: var(--color-primary-blue); flex-shrink: 0; }
+    .promo-banner .promo-body h3 {
+      font-family: "Google Sans", sans-serif;
+      font-size: 20px; font-weight: 400;
+      color: var(--color-text-primary); margin-bottom: 4px;
+    }
+    .promo-banner .promo-body p { font-size: 14px; color: var(--color-text-secondary); }
+    .promo-banner .dismiss {
+      position: absolute; top: 12px; right: 12px;
+    }
+
+    /* ── Filter Row ── */
+    .filter-row {
+      display: flex; align-items: center; gap: 16px;
+      margin-bottom: 24px;
+    }
+    .filter-select {
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      padding: 8px 32px 8px 12px;
+      font-size: 14px; color: var(--color-text-primary);
+      background: var(--color-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%235F6368' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 8px center;
+      appearance: none; cursor: pointer;
+    }
+    .filter-select:focus { outline: none; border-color: var(--color-primary-blue); border-width: 2px; }
+    .text-link {
+      color: var(--color-primary-blue); font-size: 14px; font-weight: 500;
+      text-decoration: none; cursor: pointer;
+    }
+    .text-link:hover { text-decoration: underline; }
+
+    /* ── Collapsible Section ── */
+    .section-block { margin-bottom: 8px; }
+    .section-header {
+      display: flex; align-items: center;
+      padding: 0 24px 0 16px;
+      height: 48px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .section-header .section-title {
+      font-family: "Google Sans", sans-serif;
+      font-size: 16px; font-weight: 500;
+      color: var(--color-text-primary); flex: 1;
+    }
+    .section-header .chevron {
+      transition: transform .2s ease-in-out;
+      color: var(--color-text-secondary);
+    }
+    .section-header.collapsed .chevron { transform: rotate(-90deg); }
+
+    /* ── List Row ── */
+    .list-rows { background: var(--color-bg); }
+    .list-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 24px 0 16px;
+      height: 56px;
+      border-bottom: 1px solid var(--color-border);
+      transition: background .1s;
+    }
+    .list-row:hover { background: var(--color-bg-subtle); }
+    .row-icon-badge {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .row-icon-badge .material-icons-outlined { font-size: 18px; color: #fff; }
+    .row-label { flex: 1; font-size: 14px; color: var(--color-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row-meta { font-size: 13px; color: var(--color-text-secondary); font-style: italic; white-space: nowrap; }
+    .row-actions { display: flex; align-items: center; gap: 4px; }
+
+    /* ── Status badges (for submissions) ── */
+    .status-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 10px; border-radius: 12px;
+      font-size: 12px; font-weight: 500;
+    }
+    .chip-turned-in  { background: #E6F4EA; color: #137333; }
+    .chip-created    { background: #FCE8E6; color: #C5221F; }
+    .chip-returned   { background: #FEF7E0; color: #B06000; }
+    .chip-unknown    { background: var(--color-bg-subtle); color: var(--color-text-secondary); }
+
+    /* ── Summary chips row ── */
+    .summary-row {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .summary-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border-radius: 8px;
+      border: 1px solid var(--color-border);
+      font-size: 14px;
+    }
+    .summary-chip .count {
+      font-family: "Google Sans", sans-serif;
+      font-size: 20px; font-weight: 500;
+      color: var(--color-primary-blue);
+    }
+    .summary-chip .label { color: var(--color-text-secondary); }
+
+    /* ── Primary Button ── */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--color-primary-blue); color: #fff;
+      border: none; border-radius: 24px;
+      padding: 10px 24px; font-size: 14px; font-weight: 500;
+      cursor: pointer; text-decoration: none;
+      transition: background .15s, box-shadow .15s;
+      font-family: "Google Sans", sans-serif;
+    }
+    .btn-primary:hover { background: #1557b0; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+
+    /* ── Table (courses) ── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      text-align: left; padding: 12px 16px;
+      font-size: 12px; font-weight: 500; letter-spacing: .5px;
+      color: var(--color-text-secondary); text-transform: uppercase;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .data-table td {
+      padding: 0; border-bottom: 1px solid var(--color-border);
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+
+    /* ── Responsive ── */
+    @media (max-width: 767px) {
+      .sidebar { transform: translateX(-100%); transition: transform .25s; }
+      .sidebar.open { transform: translateX(0); }
+      .main-wrap { margin-left: 0; }
+      .content-area { padding: 16px; }
+      .tab-bar { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top App Bar -->
+<header class="app-bar">
+  <div class="menu-btn" onclick="toggleSidebar()">
+    <span class="material-icons-outlined">menu</span>
+  </div>
+  <a class="logo-area" href="/">
+    <span class="material-icons-outlined" style="color:#1A73E8;font-size:28px">school</span>
+    <span class="product-name">Classroom</span>
+  </a>
+  {% if breadcrumb %}
+  <div class="breadcrumb">
+    <span class="material-icons-outlined chevron">chevron_right</span>
+    <span class="course-name">{{ breadcrumb }}</span>
+  </div>
+  {% endif %}
+  <div class="spacer"></div>
+  <div class="util-cluster">
+    <button class="icon-btn" title="Settings"><span class="material-icons-outlined">settings</span></button>
+    <div class="avatar">TA</div>
+  </div>
+</header>
+
+<!-- Left Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <a href="/" class="nav-item {% if request.endpoint == 'index' %}active{% endif %}">
+    <span class="material-icons-outlined">home</span> หน้าแรก
+  </a>
+  <div class="nav-divider"></div>
+  <div class="nav-section-label">จัดการคอร์ส</div>
+  <a href="/courses" class="nav-item {% if request.endpoint == 'courses' %}active{% endif %}">
+    <span class="material-icons-outlined">menu_book</span> Courses
+  </a>
+  <a href="/coursework" class="nav-item {% if request.endpoint == 'coursework' %}active{% endif %}">
+    <span class="material-icons-outlined">assignment</span> Course Work
+  </a>
+  <a href="/submissions" class="nav-item {% if request.endpoint == 'submissions' %}active{% endif %}">
+    <span class="material-icons-outlined">fact_check</span> Submissions
+  </a>
+</nav>
+
+<!-- Main -->
+<div class="main-wrap">
+  {% block content %}{% endblock %}
+</div>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+  // Collapsible sections
+  document.addEventListener('click', function(e) {
+    const hdr = e.target.closest('.section-header');
+    if (!hdr) return;
+    hdr.classList.toggle('collapsed');
+    const rows = hdr.nextElementSibling;
+    if (rows) rows.style.display = hdr.classList.contains('collapsed') ? 'none' : '';
+  });
+</script>
+</body>
+</html>
